@@ -65,8 +65,8 @@ class abmActions: public RFModule
 {
     private:
         ICubClient *iCub;
-            bool ABMconnected;
-            SubSystem_ABM* SubABM;
+        bool ABMconnected;
+        SubSystem_ABM* SubABM;
 
         vector<string> inputVocabs;
         vector<string> outputVocabs;
@@ -77,7 +77,7 @@ class abmActions: public RFModule
 
     std::string m_masterName;
 
-            yarp::os::RpcClient rpcPort;
+        yarp::os::RpcClient rpcPort;
 
         Port rpc;
         string GrammarAskNamePerson;

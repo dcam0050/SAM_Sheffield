@@ -1,16 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env ipython
 
-#
-#The University of Sheffield
-#WYSIWYD Project
-#
-#Example of implementation of SAMpy class
-#
-#Created on 29 May 2015
-#
-#@authors: Uriel Martinez, Luke Boorman, Andreas Damianou
-#
-#
 import matplotlib.pyplot as plt
 import readline
 import warnings
@@ -152,8 +141,8 @@ SAMCore.load_pruned_model(fname, economy_save, mySAMpy.SAMObject.model)
     
 #open ports
 yarp.Network.init()
-
-sect = splitPath[0].split('/')[-1].lower()
+#sect = splitPath[0].split('/')[-1].lower()
+sect = splitPath[0].split('/')[-1]
 
 parser2 = SafeConfigParser()
 parser2.read(interactionConfPath)

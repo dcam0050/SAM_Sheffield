@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env ipython
 
 #
 #The University of Sheffield

@@ -1,41 +1,19 @@
-from SAM.SAM_Drivers import SAMDriver_AR
-import matplotlib
-import matplotlib.pyplot as plt
-import readline
-import warnings
-import GPy
-from SAM.SAM_Core import SAMCore
-from SAM.SAM_Core import SAMDriver
-import pylab as pb
-import sys 
-from sys import executable
-import subprocess
-from subprocess import Popen, PIPE
+#!/usr/bin/env ipython
 import pickle
-import os
-from os import listdir, walk, system
-from os.path import isfile, join, isdir
-import time
-import operator
+import sys
+import warnings
+from os import listdir
+from os.path import join, isdir
+
 import numpy
-
 import numpy as np
-import numpy.ma as ma
+
+from SAM.SAM_Core import SAMCore
+from SAM.SAM_Drivers import SAMDriver_AR
+
 np.set_printoptions(threshold=numpy.nan)
-import datetime
-import yarp
-import copy
-from itertools import combinations 
 from ConfigParser import SafeConfigParser
-from scipy.spatial import distance
-from numpy.linalg import inv
-import math
-import ipyparallel as ipp
-import random
-from sklearn.metrics import confusion_matrix
 
-
-from IPython.display import clear_output
 warnings.simplefilter("ignore")
 
 def testFunc(data, lab):
@@ -44,7 +22,8 @@ def testFunc(data, lab):
             result = True
         else:
             result = False
-        print 'Actual  ' + str(lab).ljust(11) + '  Model:  ' + str(d[0]).ljust(11) + '  with ' + str(d[1])[:6] + ' confidence: ' + str(result) + '\n'
+        print 'Actual  ' + str(lab).ljust(11) + '  Model:  ' + str(d[0]).ljust(11) + '  with ' + str(d[1])[:6] + \
+              ' confidence: ' + str(result) + '\n'
         return d
 
 yarpRunning = False
@@ -54,9 +33,9 @@ trainName = sys.argv[3]
 mode = sys.argv[4]
 singleModel = False
 
-#participantList is extracted from number of subdirectories of dataPath
+# participantList is extracted from number of subdirectories of dataPath
 participantList = [f for f in listdir(dataPath) if isdir(join(dataPath, f))]
-if (len(participantList) < 1):
+if len(participantList) < 1:
     singleModel = True
 
 off = 17
@@ -102,7 +81,7 @@ if(mode == 'new' or modeConfig == 'new' or '.pickle' not in modelPath): #or upda
         else:
             ignoreLabels = ['agent_entry','agent_exit','no_agent']
         
-        if(parser.has_option(trainName, 'ignoreParts')):
+        if parser.has_option(trainName, 'ignoreParts'):
             ignoreParts = parser.get(trainName, 'ignoreParts').split(',')
         else:
             ignoreParts = ['partner']
@@ -136,6 +115,11 @@ if(mode == 'new' or modeConfig == 'new' or '.pickle' not in modelPath): #or upda
             compressData = parser.get(trainName, 'compressData')
         else:
             compressData = True
+
+        if(parser.has_option(trainName, 'ignoreStationary')):
+            ignoreStationary = parser.get(trainName, 'ignoreStationary')
+        else:
+            ignoreStationary = True
         
         if(parser.has_option(trainName, 'featuresToCompress')):
             featuresToCompress = parser.get(trainName, 'featuresToCompress').split(',')
@@ -226,6 +210,7 @@ else:
     percentContactThreshold = modelPickle['percentContactThreshold']
     featuresToUse = modelPickle['featuresToUse']
     compressData = modelPickle['compressData']
+    ignoreStationary = modelPickle['ignoreStationary']
     featuresToCompress = modelPickle['featuresToCompress']
     maxNumItems = modelPickle['maxNumItems']
     deltaDistanceThreshold = modelPickle['deltaDistanceThreshold']
@@ -263,6 +248,7 @@ mySAMpy.angleThreshold = angleThreshold
 mySAMpy.percentContactThreshold = percentContactThreshold
 mySAMpy.featuresToUse = featuresToUse
 mySAMpy.compressData = compressData
+mySAMpy.ignoreStationary = ignoreStationary
 mySAMpy.featuresToCompress = featuresToCompress
 mySAMpy.maxNumItems = maxNumItems
 mySAMpy.deltaDistanceThreshold = deltaDistanceThreshold
@@ -292,19 +278,23 @@ if visualise_output:
 else:
     visualiseInfo=None
 
-from SAM.SAM_Drivers import testingSegments
+from SAM.SAM_Core import SAMTesting
 
 yTrainingData = mySAMpy.formatDataFunc(Yall)
-testingSegments.testSegments(mySAMpy, yTrainingData, Lall)
+[trainConf, trainPerc]= SAMTesting.testSegments(mySAMpy, yTrainingData, Lall)
 
 yTrainingData = mySAMpy.formatDataFunc(YtestAll)
-testingSegments.testSegments(mySAMpy, yTrainingData, LtestAll)
+[testConf, testPerc] = SAMTesting.testSegments(mySAMpy, yTrainingData, LtestAll)
 print
 #save model with custom .pickle dictionary by iterating through all nested models
 fname_cur = fname
 print '-------------------'
 print 'Saving: ' + fname_cur
 extraParams = dict()
+extraParams['trainConf'] = trainConf
+extraParams['trainPerc'] = trainPerc
+extraParams['testConf'] = testConf
+extraParams['testPerc'] = testPerc
 extraParams['YALL'] = Yall
 extraParams['LALL'] = Lall
 extraParams['YTEST'] = YtestAll
@@ -316,6 +306,7 @@ extraParams['angleThreshold'] = mySAMpy.angleThreshold
 extraParams['percentContactThreshold'] = mySAMpy.percentContactThreshold
 extraParams['featuresToUse'] = mySAMpy.featuresToUse
 extraParams['compressData'] = mySAMpy.compressData
+extraParams['ignoreStationary'] = mySAMpy.ignoreStationary
 extraParams['featuresToCompress'] = mySAMpy.featuresToCompress
 extraParams['maxNumItems'] = mySAMpy.maxNumItems
 extraParams['deltaDistanceThreshold'] = mySAMpy.deltaDistanceThreshold

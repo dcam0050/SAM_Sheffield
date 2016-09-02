@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env ipython
 
 #
 #The University of Sheffield
@@ -65,6 +65,46 @@ economy_save = True
 pose_index=['']
 pose_selection = 0
 
+#open ports
+yarp.Network.init()
+
+sect = splitPath[0].split('/')[-1]
+
+parser2 = SafeConfigParser()
+parser2.read(interactionConfPath)
+portNameList = parser2.items(sect)
+print portNameList
+portsList = []
+for j in range(len(portNameList)):
+	if(portNameList[j][0] == 'rpcbase'):
+		portsList.append(yarp.RpcServer())
+		portsList[j].open(portNameList[j][1]+':i')
+		svPort = j
+	elif(portNameList[j][0] == 'callsign'):
+		callSignList = portNameList[j][1].split(',')
+	else:
+		parts = portNameList[j][1].split(' ')
+		print parts
+
+		if(parts[1].lower() == 'imagergb'):
+			portsList.append(yarp.BufferedPortImageRgb())
+			portsList[j].open(parts[0])
+
+		elif(parts[1].lower() == 'imagemono'):
+			portsList.append(yarp.BufferedPortImageMono())
+			portsList[j].open(parts[0])
+
+		elif(parts[1].lower() == 'bottle'):
+			portsList.append(yarp.BufferedPortBottle())
+			portsList[j].open(parts[0])
+		#mrd models with label/instance training will always have:
+		#1 an input data line which is used when a label is requested
+		#2 an output data line which is used when a generated instance is required
+		if(parts[0][-1] == 'i'):
+			labelPort = j
+		elif(parts[0][-1] == 'o'):
+			instancePort = j
+
 # # Creates a SAMpy object
 mySAMpy = SAMDriver_interaction(False, imgH = imgH, imgW = imgW, imgHNew = imgHNew, imgWNew = imgWNew)
 
@@ -106,16 +146,16 @@ for i in range(len(modelList)):
 
 	startIDx = Ntr*i;
 	endIDx = (Ntr*(i+1))
-	
+
 	Y_cur = Yall[startIDx:endIDx,:].copy()
 	L_cur = Lall[startIDx:endIDx,:].copy()
-	
+
 	startIDx = Ntest*i;
 	endIDx = (Ntest*(i+1))
-	
+
 	Ytest_cur = YtestAll[startIDx:endIDx,:].copy()
 	Ltest_cur = LtestAll[startIDx:endIDx,:].copy()
-	
+
 	# Center data to zero mean and 1 std
 	Ymean_cur = Y_cur.mean()
 	Yn_cur = Y_cur - Ymean_cur
@@ -124,7 +164,7 @@ for i in range(len(modelList)):
 	# Normalise test data similarly to training data
 	Ytestn_cur = Ytest_cur - Ymean_cur
 	Ytestn_cur /= Ystd_cur
-	
+
 	#cur.Ymean = Ymean_cur
 	#cur.Ystd = Ystd_cur
 	# As above but for the labels
@@ -134,13 +174,13 @@ for i in range(len(modelList)):
 	#Ln_cur /= Lstd_cur
 	#Ltestn_cur = Ltest_cur - Lmean_cur
 	#Ltestn_cur /= Lstd_cur
-	
+
 	cur.X = None
 	cur.Y = None
 	cur.Y = {'Y':Yn_cur}
 	cur.Ytestn = {'Ytest':Ytestn_cur}
 	cur.Ltest = {'Ltest':Ltest_cur}
-	print 
+	print
 	fname = modelList[i]
 
 	if Q > 100:
@@ -153,46 +193,6 @@ for i in range(len(modelList)):
 	cur.SAMObject.store(observed=cur.Y, inputs=cur.X, Q=Q, kernel=kernel, num_inducing=model_num_inducing)
 	SAMCore.load_pruned_model(fname, economy_save, cur.SAMObject.model)
 	mm.append(cur)
-	
-#open ports
-yarp.Network.init()
-
-sect = splitPath[0].split('/')[-1].lower()
-
-parser2 = SafeConfigParser()
-parser2.read(interactionConfPath)
-portNameList = parser2.items(sect)
-print portNameList
-portsList = []
-for j in range(len(portNameList)):
-	if(portNameList[j][0] == 'rpcbase'):
-		portsList.append(yarp.RpcServer())
-		portsList[j].open(portNameList[j][1]+':i')
-		svPort = j
-	elif(portNameList[j][0] == 'callsign'):
-		callSignList = portNameList[j][1].split(',')
-	else:
-		parts = portNameList[j][1].split(' ')
-		print parts
-
-		if(parts[1].lower() == 'imagergb'):
-			portsList.append(yarp.BufferedPortImageRgb())
-			portsList[j].open(parts[0])
-
-		elif(parts[1].lower() == 'imagemono'):
-			portsList.append(yarp.BufferedPortImageMono())
-			portsList[j].open(parts[0])
-
-		elif(parts[1].lower() == 'bottle'):
-			portsList.append(yarp.BufferedPortBottle())
-			portsList[j].open(parts[0])
-		#mrd models with label/instance training will always have:
-		#1 an input data line which is used when a label is requested
-		#2 an output data line which is used when a generated instance is required
-		if(parts[0][-1] == 'i'):
-			labelPort = j
-		elif(parts[0][-1] == 'o'):
-			instancePort = j
 
 #making sure all ports are connected
 out = 0
@@ -219,7 +219,7 @@ images = numpy.zeros((numFaces, imgHNew*imgWNew), dtype=numpy.uint8)
 
 print 'Responding to callsigns: ' + ', '.join(callSignList)
 while( True ):
-        try: 
+        try:
 			print "Waiting for input"
 			print
 			time.sleep(1)

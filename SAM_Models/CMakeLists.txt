@@ -3,8 +3,6 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.8)
-#set(PYTHON_ACTIONS demo_actions.py)
-#set(PYTHON_INTERACTION demo_interaction.py)
 
 file(GLOB pyfiles *.py)
 
