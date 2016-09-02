@@ -86,7 +86,7 @@ Where `<model1Name>` and `<model2Name>` will be modelled as a single model while
 
 ####SAM_Core: 
 - Includes the base classes for SAM_Core and SAM_Driver
-- Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR
+- Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR      
 
 ####SAM_Drivers:
 - This folder contains all developed drivers. 
