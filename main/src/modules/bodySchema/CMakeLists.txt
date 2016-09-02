@@ -1,5 +1,0 @@
-add_subdirectory(sensoryProcessor)
-add_subdirectory(babbling)
-if(WYSIWYD_USE_OTL)
-    add_subdirectory(modelOTL)
-endif()
