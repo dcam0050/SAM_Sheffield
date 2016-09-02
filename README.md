@@ -1,5 +1,23 @@
 # SAM_Sheffield
 
+The devel branch of SAM_Sheffield contains untested code and is used for development. This branch also includes SAM_Demos and SAM_models
+
+##Features
+
+samSupervisor at this point can manage multiple models with great flexibility in training and interacting with models. 
+
+trainSAMModel allows for the training of multiple, single or temporal models by simply changing the value in the config.ini of the particular model and automates testing of the different types of models.
+
+interactionSAMModel also allows for great flexibility in the method of data collection. 3 Methods are currently supported.
+
+-`continuous` : 	Data is continuously classified by the driver with a buffer of classifications being kept. Each time a classification is queried, the classification buffer decreases in size until it reaches 0 and returns None
+
+-`buffered` :		In this case, a buffer of the latest n data points are kept and when the classification command is sent, these data points are sent to the driver for classification which is returned immediately. 
+
+-`future_buffered` : 	In this case, when a classification request is sent, the future n data points are collected, classified and a classification returned.
+
+Setting a model to any one of these data collection methods and also specifying the buffer lengths is done within sensory_level_config.ini
+
 ##How to use:
 
 Everything is accessed via **samSupervisor** which is installed to **WYSIWYD_DIR**.
@@ -8,21 +26,25 @@ Connect with samSupervisor via `/sam/rpc:i` and issue help for a list of all pos
 
 -`check_all`: 		Check data and config.ini availabilities for that model, as well as current status (Training or Loaded) and check if model is curently up to date
 
--`check <modelName>`: 	Check the same points as above but for a single model
+-`check <modelName>`: 		Check the same points as above but for a single model
 
--`close <modelName>`: 	Terminates a currently loaded interaction process for the particular model
+-`close <modelName>`: 		Terminates a currently loaded interaction process for the particular model
 
--`delete <modelName>`: 	Physically deletes the trained model for `<modelName>`
+-`delete <modelName>`: 		Physically deletes the trained model for `<modelName>`
 
--`help`: 		Provides a list of available commands
+-`help`: 			Provides a list of available commands
 
--`load <modelName>`: 	Launches an interaction process for the corresponding model
+-`load <modelName>`: 		Launches an interaction process for the corresponding model. If model already present, reloads model from disk
 
--`quit`: 		Terminates samSupervisor
+-`optimise <modelName>`: 	Optimises the parameters of the model via Bayesian Optimisation to achieve the best result. Require GPyOpt to be installed
 
--`train` <modelName>:	Launches a training process for the corresponding model
+-`quit`: 			Terminates samSupervisor
 
--`list_callSigns`:	Compiles a list of currently active callSigns. Where callSigns are the messages that loaded models respond to
+-`train` <modelName>:		Launches a training process for the corresponding model
+
+-`list_callSigns`:		Compiles a list of currently active callSigns. Where callSigns are the messages that loaded models respond to
+
+When a model is loaded, to retrieve a classification of a generation from the model, issue the respective command in the list_callSigns list. There is a timeout of 10 seconds for the response so as not to block the operation of samSupervisor
 
 
 ##Prerequisites to use samSupervisor:
@@ -66,17 +88,6 @@ Where `<model1Name>` and `<model2Name>` will be modelled as a single model while
 - Includes the base classes for SAM_Core and SAM_Driver
 - Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR
 
-####SAM_Demos:
-- Includes standalone SAM demos which do not require samSupervisor to run.
-- These display the use of various functionalities of SAM
-
 ####SAM_Drivers:
 - This folder contains all developed drivers. 
-- These drivers are accessed via the generic trainModel and interactionModel classes which are called from samSupervisor. 
-- Please look at the exampleDriver class to develop your own driver
-
-####Utils:
-- This folder contains bits and bobs of functionality mostly related to the recording or labelling of datasets
-
-####Dev:
-- This folder is used for development of new features before they are included within the other folders
+- These drivers are accessed via the generic trainModel and interactionModel classes which are called from samSupervisor
